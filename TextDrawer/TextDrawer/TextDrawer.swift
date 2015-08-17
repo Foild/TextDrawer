@@ -80,9 +80,9 @@ public class TextDrawer: UIView, TextEditViewDelegate {
         }
     }
     
-    public var textEditOffset: CGPoint = CGPointZero {
+    public var textEditOffset: CGFloat = 0 {
         didSet {
-            textEditView.contentOffset = textEditOffset
+            textEditView.topOffset = textEditOffset
         }
     }
     

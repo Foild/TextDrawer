@@ -17,9 +17,9 @@ public class TextEditView: UIView {
     
     private var textView: UITextView!
     private var textContainer: UIView!
-    public var contentOffset: CGPoint = CGPointZero {
+    public var topOffset: CGFloat = 0 {
         didSet {
-            textView.contentOffset = contentOffset
+            self.updateTextTopOffset()
         }
     }
     
@@ -73,11 +73,14 @@ public class TextEditView: UIView {
         textView.returnKeyType = UIReturnKeyType.Done
         textView.clipsToBounds = true
         textView.delegate = self
-        textView.contentOffset = CGPointMake(0, 40)
         
         textContainer.addSubview(textView)
+        
         textView.mas_makeConstraints { (make: MASConstraintMaker!) -> Void in
-            make.edges.equalTo()(self.textContainer)
+            make.left.equalTo()(self.textContainer)
+            make.right.equalTo()(self.textContainer)
+            make.bottom.equalTo()(self.textContainer)
+            make.top.equalTo()(self.textContainer).offset()(self.topOffset)
         }
         
         textContainer.hidden = true
@@ -92,6 +95,12 @@ public class TextEditView: UIView {
     
     deinit {
         NSNotificationCenter.defaultCenter().removeObserver(self)
+    }
+    
+    private func updateTextTopOffset() {
+        textView.mas_updateConstraints { (make: MASConstraintMaker!) -> Void in
+            make.top.equalTo()(self.textContainer).offset()(self.topOffset)
+        }
     }
 }
 
