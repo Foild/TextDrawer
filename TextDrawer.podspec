@@ -12,7 +12,7 @@ Pod::Spec.new do |s|
   s.social_media_url      = 'https://twitter.com/remi936'
   s.author                = { "rémi " => "remirobert33530@gmail.com" }
 
-  s.source                = { :git => "https://github.com/remirobert/TextDrawer.git", :tag => "1.0.6" }
+  s.source                = { :git => "https://github.com/Foild/TextDrawer.git", :tag => "1.0.7" }
   s.source_files          = 'TextDrawer/TextDrawer/*.swift'
   s.dependency 'Masonry'
 end
