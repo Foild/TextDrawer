@@ -80,6 +80,18 @@ public class TextDrawer: UIView, TextEditViewDelegate {
         }
     }
     
+    public var textEditOffset: CGPoint = CGPointZero {
+        didSet {
+            textEditView.contentOffset = textEditOffset
+        }
+    }
+    
+    public var hasLabels: Bool {
+        get {
+            return self.drawTextView.labels.count > 0
+        }
+    }
+    
     public var touchedDrawerBlock: TextDrawerTouched?
     
     public func clearText() {

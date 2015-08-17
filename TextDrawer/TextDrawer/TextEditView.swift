@@ -14,12 +14,17 @@ protocol TextEditViewDelegate {
 }
 
 public class TextEditView: UIView {
-
+    
     private var textView: UITextView!
     private var textContainer: UIView!
+    public var contentOffset: CGPoint = CGPointZero {
+        didSet {
+            textView.contentOffset = contentOffset
+        }
+    }
     
     var delegate: TextEditViewDelegate?
-
+    
     var textSize: Int! = 42
     
     var textEntry: String! {
@@ -48,7 +53,7 @@ public class TextEditView: UIView {
             }
         }
     }
-        
+    
     init() {
         super.init(frame: CGRectZero)
         
@@ -68,6 +73,7 @@ public class TextEditView: UIView {
         textView.returnKeyType = UIReturnKeyType.Done
         textView.clipsToBounds = true
         textView.delegate = self
+        textView.contentOffset = CGPointMake(0, 40)
         
         textContainer.addSubview(textView)
         textView.mas_makeConstraints { (make: MASConstraintMaker!) -> Void in
@@ -79,11 +85,11 @@ public class TextEditView: UIView {
         
         keyboardNotification()
     }
-
+    
     required public init(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
+    
     deinit {
         NSNotificationCenter.defaultCenter().removeObserver(self)
     }
