@@ -11,8 +11,10 @@
 import UIKit
 import Masonry
 
-public class TextDrawer: UIView, TextEditViewDelegate {
+public typealias TextDrawerTouched = ((drawerView: TextDrawer) -> Void)
 
+public class TextDrawer: UIView, TextEditViewDelegate {
+    
     private var textEditView: TextEditView!
     private var drawTextView: DrawTextView!
     
@@ -28,26 +30,57 @@ public class TextDrawer: UIView, TextEditViewDelegate {
     private lazy var tapRecognizer: UITapGestureRecognizer! = {
         let tapRecognizer = UITapGestureRecognizer(target: self, action: "handleTapGesture:")
         tapRecognizer.delegate = self
+        tapRecognizer.cancelsTouchesInView = false
         return tapRecognizer
-    }()
+        }()
     
     private lazy var panRecognizer: UIPanGestureRecognizer! = {
         let panRecognizer = UIPanGestureRecognizer(target: self, action: "handlePanGesture:")
         panRecognizer.delegate = self
+        panRecognizer.cancelsTouchesInView = false
         return panRecognizer
-    }()
+        }()
     
     private lazy var rotateRecognizer: UIRotationGestureRecognizer! = {
         let rotateRecognizer = UIRotationGestureRecognizer(target: self, action: "handlePinchGesture:")
         rotateRecognizer.delegate = self
+        rotateRecognizer.cancelsTouchesInView = false
         return rotateRecognizer
-    }()
-
+        }()
+    
     private lazy var zoomRecognizer: UIPinchGestureRecognizer! = {
         let zoomRecognizer = UIPinchGestureRecognizer(target: self, action: "handlePinchGesture:")
         zoomRecognizer.delegate = self
+        zoomRecognizer.cancelsTouchesInView = false
         return zoomRecognizer
-    }()
+        }()
+    
+    private lazy var deleteArea: UIView = {
+        let view = UIView()
+        view.backgroundColor = UIColor.clearColor()
+        return view
+        }()
+    
+    private lazy var deleteIconView: UIImageView = {
+        let view = UIImageView()
+        view.backgroundColor = UIColor.clearColor()
+        view.clipsToBounds = true
+        view.image = self.deleteIcon
+        view.contentMode = UIViewContentMode.ScaleAspectFit
+        
+        view.transform = CGAffineTransformMakeScale(0.1, 0.1)
+        view.alpha = 0
+        
+        return view
+        }()
+    
+    public var deleteIcon: UIImage? {
+        didSet {
+            deleteIconView.image = deleteIcon
+        }
+    }
+    
+    public var touchedDrawerBlock: TextDrawerTouched?
     
     public func clearText() {
         text = ""
@@ -74,21 +107,62 @@ public class TextDrawer: UIView, TextEditViewDelegate {
         drawTextView.mas_makeConstraints { (make: MASConstraintMaker!) -> Void in
             make.edges.equalTo()(self)
         }
-
+        
         textEditView = TextEditView()
         textEditView.delegate = self
-
+        
         addSubview(textEditView)
         textEditView.mas_makeConstraints { (make: MASConstraintMaker!) -> Void in
             make.edges.equalTo()(self)
         }
         
-        addGestureRecognizer(tapRecognizer)
-        addGestureRecognizer(panRecognizer)
+        deleteArea.addSubview(deleteIconView)
+        addSubview(deleteArea)
+        
+        deleteIconView.mas_makeConstraints { (make: MASConstraintMaker!) -> Void in
+            make.center.equalTo()(self.deleteArea)
+            make.height.mas_equalTo()(30)
+            make.width.mas_equalTo()(30)
+        }
+        
+        deleteArea.mas_makeConstraints { (make: MASConstraintMaker!) -> Void in
+            make.right.and().left().equalTo()(self)
+            make.height.equalTo()(50)
+            make.centerX.equalTo()(self)
+            make.bottom.equalTo()(self)
+        }
+        
+        self.sendSubviewToBack(deleteArea)
+        //        addGestureRecognizer(panRecognizer)
         addGestureRecognizer(rotateRecognizer)
         addGestureRecognizer(zoomRecognizer)
         
         initialReferenceRotationTransform = CGAffineTransformIdentity
+    }
+    
+    public func addNewLabel() {
+        self.drawTextView.addLabel { (label) -> Void in
+            let tap = UITapGestureRecognizer(target: self, action: "handleTapGesture:")
+            tap.delegate = self
+            tap.cancelsTouchesInView = false
+            label.addGestureRecognizer(tap)
+            label.font = label.font.fontWithSize(44)
+            
+            let zoomRecognizer = UIPinchGestureRecognizer(target: self, action: "handlePinchGesture:")
+            zoomRecognizer.delegate = self
+            zoomRecognizer.cancelsTouchesInView = false
+            
+            let rotateRecognizer = UIRotationGestureRecognizer(target: self, action: "handlePinchGesture:")
+            rotateRecognizer.delegate = self
+            rotateRecognizer.cancelsTouchesInView = false
+            
+            let panRecognizer = UIPanGestureRecognizer(target: self, action: "handlePanGesture:")
+            panRecognizer.delegate = self
+            panRecognizer.cancelsTouchesInView = false
+            
+            label.addGestureRecognizer(panRecognizer)
+            
+        }
     }
     
     //MARK: -
@@ -97,7 +171,7 @@ public class TextDrawer: UIView, TextEditViewDelegate {
     init() {
         super.init(frame: CGRectZero)
         setup()
-        drawTextView.textLabel.font = drawTextView.textLabel.font.fontWithSize(44)
+        
     }
     
     override init(frame: CGRect) {
@@ -123,46 +197,46 @@ public extension TextDrawer {
     
     public var fontSize: CGFloat! {
         set {
-            drawTextView.textLabel.font = drawTextView.textLabel.font.fontWithSize(newValue)
+            drawTextView.currentLabel?.font = drawTextView.currentLabel?.font.fontWithSize(newValue)
         }
         get {
-            return  drawTextView.textLabel.font.pointSize
+            return  drawTextView.currentLabel?.font.pointSize
         }
     }
     
     public var font: UIFont! {
         set {
-            drawTextView.textLabel.font = newValue
+            drawTextView.currentLabel?.font = newValue
         }
         get {
-            return drawTextView.textLabel.font
+            return drawTextView.currentLabel?.font
         }
     }
     
     public var textColor: UIColor! {
         set {
-            drawTextView.textLabel.textColor = newValue
+            drawTextView.currentLabel?.textColor = newValue
         }
         get {
-            return drawTextView.textLabel.textColor
+            return drawTextView.currentLabel?.textColor
         }
     }
     
     public var textAlignement: NSTextAlignment! {
         set {
-            drawTextView.textLabel.textAlignment = newValue
+            drawTextView.currentLabel?.textAlignment = newValue
         }
         get {
-            return drawTextView.textLabel.textAlignment
+            return drawTextView.currentLabel?.textAlignment
         }
     }
     
     public var textBackgroundColor: UIColor! {
         set {
-            drawTextView.textLabel.backgroundColor = newValue
+            drawTextView.currentLabel?.backgroundColor = newValue
         }
         get {
-            return drawTextView.textLabel.backgroundColor
+            return drawTextView.currentLabel?.backgroundColor
         }
     }
     
@@ -195,18 +269,49 @@ extension TextDrawer: UIGestureRecognizerDelegate {
     }
     
     func handleTapGesture(recognizer: UITapGestureRecognizer) {
-        textEditView.textEntry = text
+        if let label = recognizer.view as? CustomLabel {
+            self.drawTextView.currentLabel = label
+        }
+        
+        textEditView.textEntry = drawTextView.currentLabel?.text
         textEditView.isEditing = true
         textEditView.hidden = false
+        touchedDrawerBlock?(drawerView: self)
     }
     
     func handlePanGesture(recognizer: UIPanGestureRecognizer) {
         let translation = recognizer.translationInView(self)
         switch recognizer.state {
         case .Began, .Ended, .Failed, .Cancelled:
-            initialCenterDrawTextView = drawTextView.center
+            if let label = recognizer.view as? CustomLabel {
+                self.drawTextView.currentLabel = label
+            }
+            initialCenterDrawTextView = drawTextView.currentLabel?.center
+            touchedDrawerBlock?(drawerView: self)
+            
+            UIView.animateWithDuration(0.4, delay: 0, usingSpringWithDamping: 0.4, initialSpringVelocity: 2, options: UIViewAnimationOptions.allZeros, animations: {
+                self.deleteIconView.transform = recognizer.state == .Began ? CGAffineTransformIdentity : CGAffineTransformMakeScale(0.1, 0.1)
+                self.deleteIconView.alpha = recognizer.state == .Began ? 1 : 0
+                }, completion: nil)
+            
+            if recognizer.state == .Ended {
+                var convertedCenter = self.convertPoint(self.drawTextView.currentLabel!.center, fromView: self.drawTextView)
+                var deletePoint = CGRectMake(CGRectGetMinX(deleteIconView.frame)-10, CGRectGetMinY(self.deleteArea.frame), 50, 50)
+                
+                if CGRectContainsPoint(self.deleteArea.frame, convertedCenter) {
+                    self.drawTextView.removeCurrentLabel()
+                }
+            }
         case .Changed:
-            drawTextView.center = CGPointMake(initialCenterDrawTextView.x + translation.x,
+            var convertedCenter = self.convertPoint(self.drawTextView.currentLabel!.center, fromView: self.drawTextView)
+            var deletePoint = CGRectMake(CGRectGetMinX(deleteIconView.frame)-10, CGRectGetMinY(self.deleteArea.frame), 50, 50)
+            
+            var isHoveringDelete = CGRectContainsPoint(self.deleteArea.frame, convertedCenter)
+            UIView.animateWithDuration(0.4, delay: 0, usingSpringWithDamping: 0.4, initialSpringVelocity: 2, options: UIViewAnimationOptions.allZeros, animations: {
+                self.deleteIconView.transform = isHoveringDelete ? CGAffineTransformMakeScale(1.2, 1.2) : CGAffineTransformIdentity
+                }, completion: nil)
+            
+            drawTextView.currentLabel?.center = CGPointMake(initialCenterDrawTextView.x + translation.x,
                 initialCenterDrawTextView.y + translation.y)
         default: return
         }
@@ -217,8 +322,11 @@ extension TextDrawer: UIGestureRecognizerDelegate {
         
         switch recognizer.state {
         case .Began:
+            if let label = recognizer.view as? CustomLabel {
+                self.drawTextView.currentLabel = label
+            }
             if activieGestureRecognizer.count == 0 {
-                initialRotationTransform = drawTextView.transform
+                initialRotationTransform = drawTextView.currentLabel?.transform
             }
             activieGestureRecognizer.addObject(recognizer)
             break
@@ -227,15 +335,16 @@ extension TextDrawer: UIGestureRecognizerDelegate {
             for currentRecognizer in activieGestureRecognizer {
                 transform = applyRecogniser(currentRecognizer as? UIGestureRecognizer, currentTransform: transform)
             }
-            drawTextView.transform = transform
+            drawTextView.currentLabel?.transform = transform
             break
             
         case .Ended, .Failed, .Cancelled:
             initialRotationTransform = applyRecogniser(recognizer, currentTransform: initialRotationTransform)
             activieGestureRecognizer.removeObject(recognizer)
+            touchedDrawerBlock?(drawerView: self)
         default: return
         }
-
+        
     }
     
     private func applyRecogniser(recognizer: UIGestureRecognizer?, currentTransform: CGAffineTransform) -> CGAffineTransform {
@@ -277,7 +386,7 @@ public extension TextDrawer {
         let size = image.size
         let scale = size.width / CGRectGetWidth(self.bounds)
         let color = layer.backgroundColor
-
+        
         UIGraphicsBeginImageContextWithOptions(self.bounds.size, false, 0)
         
         image.drawInRect(CGRectMake(CGRectGetWidth(self.bounds) / 2 - (image.size.width / scale) / 2,
@@ -287,7 +396,7 @@ public extension TextDrawer {
         layer.backgroundColor = UIColor.clearColor().CGColor
         layer.renderInContext(UIGraphicsGetCurrentContext())
         layer.backgroundColor = color
-
+        
         
         let drawnImage = UIGraphicsGetImageFromCurrentImageContext();
         UIGraphicsEndImageContext();
