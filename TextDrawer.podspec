@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name                  = "TextDrawer"
-  s.version               = "1.0.6"
+  s.version               = "1.0.7"
   s.summary               = "TextDrawer, is a UIView allows you to add text, with gesture, on UIView, or UIImage."
   s.requires_arc          = true
   s.homepage              = "https://github.com/remirobert/TextDrawer"
