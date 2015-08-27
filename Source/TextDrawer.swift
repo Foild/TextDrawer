@@ -280,6 +280,14 @@ extension TextDrawer: UIGestureRecognizerDelegate {
         return true
     }
     
+    public func gestureRecognizer(gestureRecognizer: UIGestureRecognizer, shouldReceiveTouch touch: UITouch) -> Bool {
+        if gestureRecognizer.isKindOfClass(UITapGestureRecognizer) {
+            return true
+        } else {
+            return drawTextView.currentLabel != nil
+        }
+    }
+    
     func handleTapGesture(recognizer: UITapGestureRecognizer) {
         if let label = recognizer.view as? CustomLabel {
             self.drawTextView.currentLabel = label
