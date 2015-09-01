@@ -78,6 +78,14 @@ public class DrawTextView: UIView {
         }
     }
     
+    func removeLast() {
+        labels.removeLastObject()
+    }
+    
+    func removeAll() {
+        labels.removeAllObjects()
+    }
+    
     public override func touchesBegan(touches: Set<NSObject>, withEvent event: UIEvent) {
         if let touch = touches.first as? UITouch {
             if labels.containsObject(touch.view) {

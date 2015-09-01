@@ -200,6 +200,16 @@ public class TextDrawer: UIView, TextEditViewDelegate {
         textEditView.hidden = true
         drawTextView.text = text
     }
+    
+    //MARK: -
+    //MARK: Editing
+    public func removeAll() {
+        self.drawTextView.removeAll()
+    }
+    
+    public func removeLast() {
+        self.drawTextView.removeLast()
+    }
 }
 
 //MARK: -
