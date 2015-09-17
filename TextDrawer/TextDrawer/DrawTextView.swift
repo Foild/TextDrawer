@@ -35,7 +35,7 @@ public class DrawTextView: UIView {
     }
     
     func addLabel(completion: ((label: UILabel) -> Void)? = nil) {
-        var label = CustomLabel()
+        let label = CustomLabel()
         label.text = "Enter text"
         label.font = label.font.fontWithSize(44)
         label.textAlignment = NSTextAlignment.Center
@@ -86,7 +86,7 @@ public class DrawTextView: UIView {
         labels.removeAllObjects()
     }
     
-    public override func touchesBegan(touches: Set<NSObject>, withEvent event: UIEvent) {
+    public override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
         if let touch = touches.first as? UITouch {
             if labels.containsObject(touch.view) {
                 if let label = touch.view as? CustomLabel {
@@ -97,7 +97,7 @@ public class DrawTextView: UIView {
     }
     
     func sizeTextLabel(textLabel: CustomLabel) {
-        var transform = textLabel.transform
+        let transform = textLabel.transform
         textLabel.transform = CGAffineTransformIdentity
         let oldCenter = textLabel.center
         let styleText = NSMutableParagraphStyle()
@@ -110,7 +110,7 @@ public class DrawTextView: UIView {
         textLabel.transform = transform
     }
     
-    required public init(coder aDecoder: NSCoder) {
+    required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 }

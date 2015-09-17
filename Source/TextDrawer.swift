@@ -191,7 +191,7 @@ public class TextDrawer: UIView, TextEditViewDelegate {
         setup()
     }
     
-    required public init(coder aDecoder: NSCoder) {
+    required public init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
         setup()
     }
@@ -319,13 +319,13 @@ extension TextDrawer: UIGestureRecognizerDelegate {
             initialCenterDrawTextView = drawTextView.currentLabel?.center
             touchedDrawerBlock?(drawerView: self)
             
-            UIView.animateWithDuration(0.4, delay: 0, usingSpringWithDamping: 0.4, initialSpringVelocity: 2, options: UIViewAnimationOptions.allZeros, animations: {
+            UIView.animateWithDuration(0.4, delay: 0, usingSpringWithDamping: 0.4, initialSpringVelocity: 2, options: UIViewAnimationOptions(), animations: {
                 self.deleteIconView.transform = recognizer.state == .Began ? CGAffineTransformIdentity : CGAffineTransformMakeScale(0.1, 0.1)
                 self.deleteIconView.alpha = recognizer.state == .Began ? 1 : 0
                 }, completion: nil)
             
             if recognizer.state == .Ended {
-                var convertedCenter = self.convertPoint(self.drawTextView.currentLabel!.center, fromView: self.drawTextView)
+                let convertedCenter = self.convertPoint(self.drawTextView.currentLabel!.center, fromView: self.drawTextView)
                 var deletePoint = CGRectMake(CGRectGetMinX(deleteIconView.frame)-10, CGRectGetMinY(self.deleteArea.frame), 50, 50)
                 
                 if CGRectContainsPoint(self.deleteArea.frame, convertedCenter) {
@@ -333,11 +333,11 @@ extension TextDrawer: UIGestureRecognizerDelegate {
                 }
             }
         case .Changed:
-            var convertedCenter = self.convertPoint(self.drawTextView.currentLabel!.center, fromView: self.drawTextView)
+            let convertedCenter = self.convertPoint(self.drawTextView.currentLabel!.center, fromView: self.drawTextView)
             var deletePoint = CGRectMake(CGRectGetMinX(deleteIconView.frame)-10, CGRectGetMinY(self.deleteArea.frame), 50, 50)
             
-            var isHoveringDelete = CGRectContainsPoint(self.deleteArea.frame, convertedCenter)
-            UIView.animateWithDuration(0.4, delay: 0, usingSpringWithDamping: 0.4, initialSpringVelocity: 2, options: UIViewAnimationOptions.allZeros, animations: {
+            let isHoveringDelete = CGRectContainsPoint(self.deleteArea.frame, convertedCenter)
+            UIView.animateWithDuration(0.4, delay: 0, usingSpringWithDamping: 0.4, initialSpringVelocity: 2, options: UIViewAnimationOptions(), animations: {
                 self.deleteIconView.transform = isHoveringDelete ? CGAffineTransformMakeScale(1.2, 1.2) : CGAffineTransformIdentity
                 }, completion: nil)
             

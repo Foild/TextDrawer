@@ -1,0 +1,27 @@
+
+/* Class = "UIButton"; normalTitle = "CLOSE"; ObjectID = "4oX-Xj-2Xl"; */
+"4oX-Xj-2Xl.normalTitle" = "CLOSE";
+
+/* Class = "UILabel"; text = "Easily obtain parallax effect just modifying runtime attributes in IB"; ObjectID = "AaH-7K-LjG"; */
+"AaH-7K-LjG.text" = "Easily obtain parallax effect just modifying runtime attributes in IB";
+
+/* Class = "UILabel"; text = "Choose the style of every single page. They are not limited by a  predefined template"; ObjectID = "HUJ-bW-ful"; */
+"HUJ-bW-ful.text" = "Choose the style of every single page. They are not limited by a  predefined template";
+
+/* Class = "UILabel"; text = "Custom Animations"; ObjectID = "KGW-Jb-IhM"; */
+"KGW-Jb-IhM.text" = "Custom Animations";
+
+/* Class = "UILabel"; text = "Automatic Animations"; ObjectID = "Kvx-AJ-PkH"; */
+"Kvx-AJ-PkH.text" = "Automatic Animations";
+
+/* Class = "UILabel"; text = "Perform builtin animation styles automatically. Just put your subviews  into the hierarchy..."; ObjectID = "QgZ-gl-DLV"; */
+"QgZ-gl-DLV.text" = "Perform builtin animation styles automatically. Just put your subviews  into the hierarchy...";
+
+/* Class = "UILabel"; text = "This page receives offset information. Animate its subviews as you wish!"; ObjectID = "dDt-ZO-IbC"; */
+"dDt-ZO-IbC.text" = "This page receives offset information. Animate its subviews as you wish!";
+
+/* Class = "UILabel"; text = "Custom pages"; ObjectID = "dfl-3s-oOE"; */
+"dfl-3s-oOE.text" = "Custom pages";
+
+/* Class = "UILabel"; text = "Parallax"; ObjectID = "hge-Ts-lfN"; */
+"hge-Ts-lfN.text" = "Parallax";
