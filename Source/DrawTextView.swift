@@ -87,8 +87,8 @@ public class DrawTextView: UIView {
     }
     
     public override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
-        if let touch = touches.first as? UITouch {
-            if labels.containsObject(touch.view) {
+        if let touch = touches.first {
+            if labels.containsObject(touch.view!) {
                 if let label = touch.view as? CustomLabel {
                     self.currentLabel = label
                 }

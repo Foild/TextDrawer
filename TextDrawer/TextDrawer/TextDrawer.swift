@@ -1,6 +1,6 @@
 //
 //  DrawView.swift
-//  
+//
 //
 //  Created by Remi Robert on 11/07/15.
 //
@@ -405,7 +405,7 @@ public extension TextDrawer {
         
         UIGraphicsBeginImageContextWithOptions(view.bounds.size, false, 0)
         
-        view.layer.renderInContext(UIGraphicsGetCurrentContext())
+        view.layer.renderInContext(UIGraphicsGetCurrentContext()!)
         let img = UIGraphicsGetImageFromCurrentImageContext()
         
         UIGraphicsEndImageContext()
@@ -424,12 +424,12 @@ public extension TextDrawer {
             image.size.width / scale,
             image.size.height / scale))
         layer.backgroundColor = UIColor.clearColor().CGColor
-        layer.renderInContext(UIGraphicsGetCurrentContext())
+        layer.renderInContext(UIGraphicsGetCurrentContext()!)
         layer.backgroundColor = color
         
         
         let drawnImage = UIGraphicsGetImageFromCurrentImageContext();
         UIGraphicsEndImageContext();
-        return UIImage(CGImage: drawnImage.CGImage, scale: 1, orientation: drawnImage.imageOrientation)
+        return UIImage(CGImage: drawnImage.CGImage!, scale: 1, orientation: drawnImage.imageOrientation)
     }
 }
