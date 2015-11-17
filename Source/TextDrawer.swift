@@ -32,34 +32,34 @@ public class TextDrawer: UIView, TextEditViewDelegate {
         tapRecognizer.delegate = self
         tapRecognizer.cancelsTouchesInView = false
         return tapRecognizer
-        }()
+    }()
     
     private lazy var panRecognizer: UIPanGestureRecognizer! = {
         let panRecognizer = UIPanGestureRecognizer(target: self, action: "handlePanGesture:")
         panRecognizer.delegate = self
         panRecognizer.cancelsTouchesInView = false
         return panRecognizer
-        }()
+    }()
     
     private lazy var rotateRecognizer: UIRotationGestureRecognizer! = {
         let rotateRecognizer = UIRotationGestureRecognizer(target: self, action: "handlePinchGesture:")
         rotateRecognizer.delegate = self
         rotateRecognizer.cancelsTouchesInView = false
         return rotateRecognizer
-        }()
+    }()
     
     private lazy var zoomRecognizer: UIPinchGestureRecognizer! = {
         let zoomRecognizer = UIPinchGestureRecognizer(target: self, action: "handlePinchGesture:")
         zoomRecognizer.delegate = self
         zoomRecognizer.cancelsTouchesInView = false
         return zoomRecognizer
-        }()
+    }()
     
     private lazy var deleteArea: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor.clearColor()
         return view
-        }()
+    }()
     
     private lazy var deleteIconView: UIImageView = {
         let view = UIImageView()
@@ -72,7 +72,7 @@ public class TextDrawer: UIView, TextEditViewDelegate {
         view.alpha = 0
         
         return view
-        }()
+    }()
     
     public var deleteIcon: UIImage? {
         didSet {
@@ -94,6 +94,9 @@ public class TextDrawer: UIView, TextEditViewDelegate {
     
     public var touchedDrawerBlock: TextDrawerTouched?
     
+    public var isRotating = false
+    
+    
     public func clearText() {
         text = ""
     }
@@ -114,7 +117,7 @@ public class TextDrawer: UIView, TextEditViewDelegate {
     private func setup() {
         self.layer.masksToBounds = true
         drawTextView = DrawTextView()
-        initialTransformation = drawTextView.transform
+        //        initialTransformation = drawTextView.currentLabeltr
         addSubview(drawTextView)
         drawTextView.mas_makeConstraints { (make: MASConstraintMaker!) -> Void in
             make.edges.equalTo()(self)
@@ -146,7 +149,7 @@ public class TextDrawer: UIView, TextEditViewDelegate {
         
         self.sendSubviewToBack(deleteArea)
         //        addGestureRecognizer(panRecognizer)
-        addGestureRecognizer(rotateRecognizer)
+        //        addGestureRecognizer(rotateRecognizer)
         addGestureRecognizer(zoomRecognizer)
         
         initialReferenceRotationTransform = CGAffineTransformIdentity
@@ -163,10 +166,6 @@ public class TextDrawer: UIView, TextEditViewDelegate {
             let zoomRecognizer = UIPinchGestureRecognizer(target: self, action: "handlePinchGesture:")
             zoomRecognizer.delegate = self
             zoomRecognizer.cancelsTouchesInView = false
-            
-            let rotateRecognizer = UIRotationGestureRecognizer(target: self, action: "handlePinchGesture:")
-            rotateRecognizer.delegate = self
-            rotateRecognizer.cancelsTouchesInView = false
             
             let panRecognizer = UIPanGestureRecognizer(target: self, action: "handlePanGesture:")
             panRecognizer.delegate = self
@@ -311,20 +310,60 @@ extension TextDrawer: UIGestureRecognizerDelegate {
     
     func handlePanGesture(recognizer: UIPanGestureRecognizer) {
         let translation = recognizer.translationInView(self)
+        
         switch recognizer.state {
-        case .Began, .Ended, .Failed, .Cancelled:
+        case .Began:
+            // Determine if rotate bit touched
             if let label = recognizer.view as? CustomLabel {
                 self.drawTextView.currentLabel = label
+                if CGRectContainsPoint(CGRectMake(label.bounds.width - (label.bounds.width * 0.3), 0, label.bounds.width * 0.3, label.bounds.height), recognizer.locationInView(label)) {
+                    self.isRotating = true
+                    if activieGestureRecognizer.count == 0 {
+                        initialRotationTransform = drawTextView.currentLabel?.transform
+                    }
+                    activieGestureRecognizer.addObject(recognizer)
+                    break
+                } else {
+                    initialCenterDrawTextView = drawTextView.currentLabel?.center
+                    touchedDrawerBlock?(drawerView: self)
+                    
+                    UIView.animateWithDuration(0.4, delay: 0, usingSpringWithDamping: 0.4, initialSpringVelocity: 2, options: UIViewAnimationOptions(), animations: {
+                        self.deleteIconView.transform = recognizer.state == .Began ? CGAffineTransformIdentity : CGAffineTransformMakeScale(0.1, 0.1)
+                        self.deleteIconView.alpha = recognizer.state == .Began ? 1 : 0
+                        }, completion: nil)
+                }
             }
-            initialCenterDrawTextView = drawTextView.currentLabel?.center
-            touchedDrawerBlock?(drawerView: self)
             
-            UIView.animateWithDuration(0.4, delay: 0, usingSpringWithDamping: 0.4, initialSpringVelocity: 2, options: UIViewAnimationOptions(), animations: {
-                self.deleteIconView.transform = recognizer.state == .Began ? CGAffineTransformIdentity : CGAffineTransformMakeScale(0.1, 0.1)
-                self.deleteIconView.alpha = recognizer.state == .Began ? 1 : 0
-                }, completion: nil)
-            
-            if recognizer.state == .Ended {
+        case .Changed:
+            if isRotating {
+                let rad = pointPairToBearingDegrees(CGPointMake((self.drawTextView.currentLabel?.frame.size.width)! / 2, (self.drawTextView.currentLabel?.frame.size.height)! / 2), gesture: recognizer)
+                //                print("ROTATE CHANGED \(rad)")
+                for currentRecognizer in activieGestureRecognizer {
+                    //                    print("Count = \(activieGestureRecognizer.count)")
+                    //                    transform = applyRecogniser(currentRecognizer as? UIGestureRecognizer, currentTransform: transform)
+                    drawTextView.applyRotation(rad)
+                }
+                //                drawTextView.currentLabel?.transform = transform
+                break
+            } else {
+                let convertedCenter = self.convertPoint(self.drawTextView.currentLabel!.center, fromView: self.drawTextView)
+                var deletePoint = CGRectMake(CGRectGetMinX(deleteIconView.frame)-10, CGRectGetMinY(self.deleteArea.frame), 50, 50)
+                
+                let isHoveringDelete = CGRectContainsPoint(self.deleteArea.frame, convertedCenter)
+                UIView.animateWithDuration(0.4, delay: 0, usingSpringWithDamping: 0.4, initialSpringVelocity: 2, options: UIViewAnimationOptions(), animations: {
+                    self.deleteIconView.transform = isHoveringDelete ? CGAffineTransformMakeScale(1.2, 1.2) : CGAffineTransformIdentity
+                    }, completion: nil)
+                
+                drawTextView.currentLabel?.center = CGPointMake(initialCenterDrawTextView.x + translation.x,
+                    initialCenterDrawTextView.y + translation.y)
+            }
+        case .Ended, .Failed, .Cancelled:
+            if isRotating {
+                initialRotationTransform = applyRecogniser(recognizer, currentTransform: initialRotationTransform)
+                activieGestureRecognizer.removeObject(recognizer)
+                drawTextView.sizeTextLabel(drawTextView.currentLabel!)
+                touchedDrawerBlock?(drawerView: self)
+            } else {
                 let convertedCenter = self.convertPoint(self.drawTextView.currentLabel!.center, fromView: self.drawTextView)
                 var deletePoint = CGRectMake(CGRectGetMinX(deleteIconView.frame)-10, CGRectGetMinY(self.deleteArea.frame), 50, 50)
                 
@@ -332,19 +371,12 @@ extension TextDrawer: UIGestureRecognizerDelegate {
                     self.drawTextView.removeCurrentLabel()
                 }
             }
-        case .Changed:
-            let convertedCenter = self.convertPoint(self.drawTextView.currentLabel!.center, fromView: self.drawTextView)
-            var deletePoint = CGRectMake(CGRectGetMinX(deleteIconView.frame)-10, CGRectGetMinY(self.deleteArea.frame), 50, 50)
-            
-            let isHoveringDelete = CGRectContainsPoint(self.deleteArea.frame, convertedCenter)
-            UIView.animateWithDuration(0.4, delay: 0, usingSpringWithDamping: 0.4, initialSpringVelocity: 2, options: UIViewAnimationOptions(), animations: {
-                self.deleteIconView.transform = isHoveringDelete ? CGAffineTransformMakeScale(1.2, 1.2) : CGAffineTransformIdentity
-                }, completion: nil)
-            
-            drawTextView.currentLabel?.center = CGPointMake(initialCenterDrawTextView.x + translation.x,
-                initialCenterDrawTextView.y + translation.y)
-        default: return
+            drawTextView.currentLabel?.layer.borderWidth = 0
+            self.isRotating = false
+        default:
+            return
         }
+        
     }
     
     func handlePinchGesture(recognizer: UIGestureRecognizer) {
@@ -374,13 +406,14 @@ extension TextDrawer: UIGestureRecognizerDelegate {
             touchedDrawerBlock?(drawerView: self)
         default: return
         }
-        
     }
     
     private func applyRecogniser(recognizer: UIGestureRecognizer?, currentTransform: CGAffineTransform) -> CGAffineTransform {
         if let recognizer = recognizer {
-            if recognizer is UIRotationGestureRecognizer {
-                return CGAffineTransformRotate(currentTransform, (recognizer as! UIRotationGestureRecognizer).rotation)
+            if recognizer is UIPanGestureRecognizer {
+                //CurrentTransform, rotation degrees in radians
+                //                let rad = pointPairToBearingDegrees(CGPointMake((self.drawTextView.currentLabel?.frame.size.width)! / 2, (self.drawTextView.currentLabel?.frame.size.height)! / 2), gesturePoint: recognizer.locationInView(self))
+                //                return CGAffineTransformRotate(currentTransform, rad)
             }
             if recognizer is UIPinchGestureRecognizer {
                 let scale = (recognizer as! UIPinchGestureRecognizer).scale
@@ -388,6 +421,21 @@ extension TextDrawer: UIGestureRecognizerDelegate {
             }
         }
         return currentTransform
+    }
+    
+    func pointPairToBearingDegrees(startingPoint: CGPoint, gesture: UIGestureRecognizer) -> CGFloat {
+        
+        let view = drawTextView.currentLabel
+        let center = CGPointMake(CGRectGetMidX((view?.bounds)!), CGRectGetMidY((view?.bounds)!))
+        let currentTouch = gesture.locationInView(view)
+        //        let previousTouch = CGPointMake(CGRectGetMinX((view?.bounds)!), CGRectGetMidY((view?.bounds)!))
+        let previousTouch = gesture.locationInView(view)
+        
+        let angleRadians = atan2(currentTouch.y - center.y, currentTouch.x - center.x)
+        
+        
+        
+        return angleRadians
     }
 }
 
@@ -402,6 +450,8 @@ public extension TextDrawer {
     
     public func renderTextOnView(view: UIView) -> UIImage? {
         let size = UIScreen.mainScreen().bounds.size
+        
+        
         
         UIGraphicsBeginImageContextWithOptions(view.bounds.size, false, 0)
         
